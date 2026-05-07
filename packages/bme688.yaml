@@ -1,0 +1,140 @@
+### packages/bme688.yaml
+### BME688 Umweltsensor: Temperatur, Luftdruck, Feuchte, IAQ
+### Erfordert base.yaml (neopixel_strip muss bereits definiert sein)
+
+esphome:
+  on_boot:
+    priority: -200            # Nach base.yaml on_boot (priority -100)
+    then:
+      - lambda: |-
+          id(bme68x_sensor).set_temperature_offset(id(temp_offset).state);
+
+light:
+  # LED 0 – IAQ-Farbindikator
+  - platform: partition
+    id: neopixel_iaq
+    name: "IAQ LED"
+    internal: true
+    segments:
+      - id: neopixel_strip
+        from: 0
+        to: 0
+
+i2c:
+  sda: GPIO20
+  scl: GPIO19
+  id: I2Cbus_a
+
+bme68x_bsec2_i2c:
+  id: bme68x_sensor
+  address: 0x77
+  model: bme680
+  operating_age: 28d
+  sample_rate: LP
+  supply_voltage: 3.3V
+  temperature_offset: 0.00    # Laufzeit-Steuerung via temp_offset number-Entity
+
+sensor:
+  - platform: bme68x_bsec2
+    temperature:
+      name: "BME68x Temperature"
+    pressure:
+      name: "BME68x Pressure"
+    humidity:
+      name: "BME68x Humidity"
+      filters:
+        - lambda: return x + id(humidity_offset).state;
+    iaq:
+      name: "BME68x IAQ"
+      id: iaq
+      on_value:
+        then:
+          - lambda: |-
+              auto call = id(neopixel_iaq).turn_on();
+              call.set_brightness(0.3);
+              if (x <= 50) {
+                call.set_rgb(0.0, 1.0, 0.0);       // Excellent     – grün
+              } else if (x <= 100) {
+                call.set_rgb(0.5, 1.0, 0.0);       // Good          – gelbgrün
+              } else if (x <= 150) {
+                call.set_rgb(1.0, 1.0, 0.0);       // Lightly       – gelb
+              } else if (x <= 200) {
+                call.set_rgb(1.0, 0.5, 0.0);       // Moderately    – orange
+              } else if (x <= 250) {
+                call.set_rgb(1.0, 0.2, 0.0);       // Heavily       – rotorange
+              } else if (x <= 350) {
+                call.set_rgb(1.0, 0.0, 0.0);       // Severely      – rot
+              } else {
+                call.set_rgb(0.8, 0.0, 0.5);       // Extremely     – lila
+              }
+              call.perform();
+    iaq_accuracy:
+      id: iaq_accuracy
+    co2_equivalent:
+      name: "BME68x CO2 Equivalent"
+    breath_voc_equivalent:
+      name: "BME68x Breath VOC Equivalent"
+
+text_sensor:
+  - platform: template
+    name: "BME68x IAQ Classification"
+    lambda: |-
+      if (int(id(iaq).get_state()) <= 50) {
+        return {"Excellent"};
+      } else if (int(id(iaq).get_state()) <= 100) {
+        return {"Good"};
+      } else if (int(id(iaq).get_state()) <= 150) {
+        return {"Lightly polluted"};
+      } else if (int(id(iaq).get_state()) <= 200) {
+        return {"Moderately polluted"};
+      } else if (int(id(iaq).get_state()) <= 250) {
+        return {"Heavily polluted"};
+      } else if (int(id(iaq).get_state()) <= 350) {
+        return {"Severely polluted"};
+      } else if (int(id(iaq).get_state()) <= 500) {
+        return {"Extremely polluted"};
+      } else {
+        return {"Error"};
+      }
+
+  - platform: template
+    name: "BME68x IAQ Accuracy Status"
+    icon: "mdi:check-circle-outline"
+    lambda: |-
+      switch (int(id(iaq_accuracy).get_state())) {
+        case 0: return {"Stabilizing (run-in ongoing)"};
+        case 1: return {"Low – expose to fresh & polluted air"};
+        case 2: return {"Medium – auto-trimming ongoing"};
+        case 3: return {"High accuracy"};
+        default: return {"Unknown"};
+      }
+    update_interval: 60s
+
+number:
+  - platform: template
+    name: "BME68x Temperature Offset"
+    id: temp_offset
+    icon: "mdi:thermometer-minus"
+    unit_of_measurement: "°C"
+    min_value: 0.0
+    max_value: 20.0
+    step: 0.1
+    optimistic: true
+    restore_value: true
+    initial_value: 10.0
+    on_value:
+      then:
+        - lambda: |-
+            id(bme68x_sensor).set_temperature_offset(x);
+
+  - platform: template
+    name: "BME68x Humidity Offset"
+    id: humidity_offset
+    icon: "mdi:delta"
+    unit_of_measurement: "%"
+    min_value: 0.0
+    max_value: 15.0
+    step: 0.5
+    optimistic: true
+    restore_value: true
+    initial_value: 0.0

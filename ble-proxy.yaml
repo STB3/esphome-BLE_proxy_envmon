@@ -1,0 +1,13 @@
+### ble-proxy.yaml
+### Gerätevariante: Bluetooth Proxy (ohne Umweltsensor)
+### Bestückung: ESP32-C6, 2x NeoPixel – kein BME688
+
+esphome:
+  name: ble-proxy
+  friendly_name: "BLE Proxy"
+  min_version: 2025.8.0
+  name_add_mac_suffix: true
+
+packages:
+  base: !include packages/base.yaml
+  wifi: !include packages/wifi.yaml

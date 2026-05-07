@@ -1,0 +1,14 @@
+### ble-envmon.yaml
+### Gerätevariante: Bluetooth Proxy + Umweltsensor (BME688)
+### Bestückung: ESP32-C6, 2x NeoPixel, BME688
+
+esphome:
+  name: ble-envmon
+  friendly_name: "BLE EnvMon"
+  min_version: 2025.8.0
+  name_add_mac_suffix: true
+
+packages:
+  base: !include packages/base.yaml
+  wifi: !include packages/wifi.yaml
+  bme688: !include packages/bme688.yaml
