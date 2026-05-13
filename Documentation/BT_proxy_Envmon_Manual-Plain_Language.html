@@ -1,0 +1,1022 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Your Little Smart Home Helper — Quick Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@300;400;700&family=Shadows+Into+Light&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #2a2422;
+    --ink-soft: #4d453f;
+    --pencil: #6b655e;
+    --pencil-light: #a39c92;
+    --paper: #f3ece0;
+    --paper-shade: #e8dfcd;
+    --wash-warm: #e8c8a8;
+    --wash-cool: #c8d4d8;
+    --wash-leaf: #c8d2b8;
+    --wash-sky:  #cfd8e2;
+    --wash-rose: #e0c4c0;
+    --highlight: #f0d878;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Kalam", "Patrick Hand", cursive;
+    color: var(--ink);
+    /* Paper texture: layered noise + faint ruled lines */
+    background-color: var(--paper);
+    background-image:
+      /* faint grid (graph paper, very subtle) */
+      linear-gradient(to right, rgba(140,120,90,0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(140,120,90,0.06) 1px, transparent 1px),
+      /* paper warmth */
+      radial-gradient(ellipse at 20% 10%, rgba(255,240,210,0.6), transparent 60%),
+      radial-gradient(ellipse at 80% 90%, rgba(220,200,170,0.4), transparent 60%);
+    background-size: 24px 24px, 24px 24px, 100% 100%, 100% 100%;
+    min-height: 100vh;
+    padding: 28px 22px 60px;
+  }
+
+  /* fibrous paper grain via stacked SVGs */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.15  0 0 0 0 0.12  0 0 0 0 0.08  0 0 0 0.18 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.55'/></svg>");
+    mix-blend-mode: multiply;
+    opacity: 0.35;
+    z-index: 50;
+  }
+
+  /* ─── Header ─── */
+  .notebook {
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+    position: relative;
+    padding-bottom: 14px;
+  }
+  .header .title {
+    font-family: "Caveat", cursive;
+    font-weight: 700;
+    font-size: 78px;
+    line-height: 0.95;
+    color: var(--ink);
+    letter-spacing: 1px;
+    transform: rotate(-1.2deg);
+    display: inline-block;
+  }
+  .header .title .marker {
+    background: linear-gradient(to bottom, transparent 55%, var(--highlight) 55%, var(--highlight) 92%, transparent 92%);
+    padding: 0 6px;
+  }
+  .header .sub {
+    font-family: "Kalam", cursive;
+    font-weight: 400;
+    font-size: 19px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+    transform: rotate(0.3deg);
+  }
+  .header .stamp {
+    position: absolute;
+    right: 6%;
+    top: -6px;
+    transform: rotate(8deg);
+    border: 2.5px solid var(--ink-soft);
+    color: var(--ink-soft);
+    font-family: "Caveat", cursive;
+    font-weight: 700;
+    font-size: 18px;
+    padding: 4px 14px;
+    border-radius: 6px;
+    letter-spacing: 2px;
+    opacity: 0.7;
+  }
+  .header .stamp .small {
+    display:block;
+    font-family: "Kalam", cursive;
+    font-weight: 400;
+    font-size: 11px;
+    letter-spacing: 1px;
+    margin-top: -2px;
+  }
+  .header .doodle-line {
+    margin: 14px auto 0;
+    width: 60%;
+    max-width: 520px;
+    height: 18px;
+    color: var(--ink-soft);
+  }
+
+  /* ─── Grid of panels ─── */
+  .panels {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px 32px;
+  }
+  @media (max-width: 820px) {
+    .panels { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    position: relative;
+    padding: 18px 20px 18px;
+    background: rgba(255,250,240,0.35);
+  }
+  .panel:nth-child(odd)  { transform: rotate(-0.35deg); }
+  .panel:nth-child(even) { transform: rotate(0.4deg); }
+  .panel:nth-child(3n)   { transform: rotate(0.2deg); }
+
+  /* hand-drawn frame absolutely positioned behind */
+  .panel .frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    color: var(--ink);
+  }
+
+  .panel .head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1.5px dashed rgba(60,50,40,0.35);
+    position: relative;
+  }
+  .panel .num {
+    font-family: "Caveat", cursive;
+    font-weight: 700;
+    font-size: 44px;
+    line-height: 1;
+    color: var(--ink);
+    width: 54px;
+    height: 54px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    transform: rotate(-4deg);
+  }
+  .panel .num svg {
+    position: absolute;
+    inset: 0;
+  }
+  .panel .num span {
+    position: relative;
+    z-index: 1;
+    padding-bottom: 4px;
+  }
+  .panel .title {
+    font-family: "Caveat", cursive;
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1.05;
+    color: var(--ink);
+    flex: 1;
+  }
+  .panel .title .underline {
+    background: linear-gradient(to bottom, transparent 70%, rgba(240,216,120,0.85) 70%, rgba(240,216,120,0.85) 96%, transparent 96%);
+    padding: 0 3px;
+  }
+
+  .panel .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0 10px;
+    min-height: 230px;
+  }
+  .panel .stage svg.scene {
+    width: 100%;
+    height: auto;
+    max-width: 520px;
+  }
+  .panel .caption {
+    margin-top: 10px;
+    text-align: center;
+    font-family: "Kalam", cursive;
+    font-weight: 400;
+    font-size: 16.5px;
+    color: var(--ink-soft);
+    line-height: 1.35;
+    max-width: 95%;
+  }
+
+  /* The pencil filter: applied to most strokes */
+  .pencil { filter: url(#pencil-rough); }
+  .pencil-soft { filter: url(#pencil-soft); }
+
+  /* default sketch stroke styling */
+  .sk {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .sk-thin { stroke-width: 1.1; }
+  .sk-thick { stroke-width: 2.4; }
+  .sk-soft { stroke: var(--pencil); }
+  .sk-light { stroke: var(--pencil-light); stroke-width: 1; }
+
+  /* Hand-lettered SVG text */
+  .hl  { font-family: "Caveat", cursive; font-weight: 700; fill: var(--ink); }
+  .hl2 { font-family: "Kalam",  cursive; font-weight: 700; fill: var(--ink); }
+  .hl-soft { fill: var(--ink-soft); font-weight: 400; }
+
+  /* Page footer note */
+  .footer {
+    text-align: center;
+    margin-top: 28px;
+    font-family: "Caveat", cursive;
+    color: var(--ink-soft);
+    font-size: 22px;
+    transform: rotate(-0.4deg);
+  }
+  .footer .dash { display: inline-block; margin: 0 12px; opacity: 0.6; }
+
+  /* margin notes */
+  .margin-note {
+    position: absolute;
+    font-family: "Caveat", cursive;
+    color: var(--ink-soft);
+    font-size: 18px;
+    pointer-events: none;
+    transform: rotate(-3deg);
+    line-height: 1.05;
+  }
+  .margin-note .arr {
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* paperclip / tape decorations */
+  .tape {
+    position: absolute;
+    width: 70px; height: 22px;
+    background: rgba(240,216,120,0.55);
+    border: 1px solid rgba(120,100,40,0.15);
+    transform: rotate(-6deg);
+    top: -10px; left: 24px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+  .panel:nth-child(2) .tape { left: auto; right: 30px; transform: rotate(7deg); top: -12px; }
+  .panel:nth-child(3) .tape { background: rgba(200,212,184,0.55); }
+  .panel:nth-child(4) .tape { background: rgba(207,216,226,0.55); left: auto; right: 24px; transform: rotate(5deg); }
+  .panel:nth-child(5) .tape { background: rgba(232,200,168,0.55); }
+  .panel:nth-child(6) .tape { left: auto; right: 30px; transform: rotate(-5deg); }
+  .panel:nth-child(7) .tape { background: rgba(224,196,192,0.55); }
+  .panel:nth-child(8) .tape { background: rgba(240,216,120,0.55); left: auto; right: 26px; }
+</style>
+</head>
+<body>
+
+<!-- ===== Global SVG defs: pencil filter, arrow markers, hatch patterns ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Pencil "rough" filter: feTurbulence + displacement makes strokes wobble -->
+    <filter id="pencil-rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2"/>
+    </filter>
+    <filter id="pencil-soft" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.07" numOctaves="2" seed="11" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.4"/>
+    </filter>
+    <filter id="pencil-rough2" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="19" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.8"/>
+    </filter>
+
+    <!-- Arrowhead, sketchy -->
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M1.5 1 L9 5 L1.5 9 L3 5 Z" fill="#2a2422"/>
+    </marker>
+    <marker id="ah-soft" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M1.5 1 L9 5 L1.5 9 L3 5 Z" fill="#4d453f"/>
+    </marker>
+
+    <!-- Hatch patterns -->
+    <pattern id="hatch-light" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#2a2422" stroke-width="0.55" opacity="0.45"/>
+    </pattern>
+    <pattern id="hatch-med" patternUnits="userSpaceOnUse" width="4.5" height="4.5" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="4.5" stroke="#2a2422" stroke-width="0.7" opacity="0.55"/>
+    </pattern>
+    <pattern id="hatch-dense" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="3" stroke="#2a2422" stroke-width="0.7" opacity="0.7"/>
+    </pattern>
+    <pattern id="cross-hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#2a2422" stroke-width="0.55" opacity="0.4"/>
+      <line x1="0" y1="0" x2="6" y2="0" stroke="#2a2422" stroke-width="0.55" opacity="0.4"/>
+    </pattern>
+
+    <!-- color washes (very faint, like watercolor pencils) -->
+    <pattern id="wash-warm" patternUnits="userSpaceOnUse" width="40" height="40">
+      <rect width="40" height="40" fill="#e8c8a8" opacity="0.45"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="notebook">
+
+  <!-- ===== Header ===== -->
+  <header class="header">
+    <div class="title">
+      <span class="marker">Bluetooth Proxy &amp; Air Sensor</span>
+    </div>
+    <div class="sub">— a friendly guide to your new smart-home gadget —</div>
+    <div class="stamp">EASY GUIDE<span class="small">no jargon!</span></div>
+
+    <svg class="doodle-line" viewBox="0 0 520 18" fill="none">
+      <path class="pencil" d="M2 9 Q 40 2 80 9 T 160 9 T 240 9 T 320 9 T 400 9 T 480 9 L 518 9"
+        stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.55"/>
+      <circle cx="260" cy="9" r="3.5" fill="currentColor" opacity="0.5"/>
+    </svg>
+  </header>
+
+  <!-- ===== PANELS ===== -->
+  <div class="panels">
+
+    <!-- ========================================================== -->
+    <!-- PANEL 1 — What is this? -->
+    <!-- ========================================================== -->
+    <section class="panel">
+      <span class="tape"></span>
+      <!-- panel frame -->
+      <svg class="frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path class="pencil" d="M1.5 2 Q 25 0.8 50 1.6 T 98.5 2.2 Q 99.3 30 98.7 60 T 98.4 98 Q 60 99.4 30 98.6 T 1.6 97.8 Q 0.7 60 1.2 30 Z"
+          fill="none" stroke="currentColor" stroke-width="0.4" vector-effect="non-scaling-stroke"/>
+        <path class="pencil-soft" d="M2.5 3 Q 50 2.4 97 3.4"
+          fill="none" stroke="currentColor" stroke-width="0.25" vector-effect="non-scaling-stroke" opacity="0.5"/>
+      </svg>
+
+      <div class="head">
+        <div class="num">
+          <svg viewBox="0 0 54 54" aria-hidden="true">
+            <circle cx="27" cy="27" r="23" fill="none" stroke="#2a2422" stroke-width="1.7" class="pencil"/>
+            <circle cx="27" cy="27" r="20" fill="none" stroke="#2a2422" stroke-width="0.8" class="pencil-soft" opacity="0.5"/>
+          </svg>
+          <span>1</span>
+        </div>
+        <div class="title">What <span class="underline">is this thing?</span></div>
+      </div>
+
+      <div class="stage">
+        <svg class="scene" viewBox="0 0 480 220" aria-hidden="true">
+          <!-- Speech bubble: BLE Proxy -->
+          <g class="pencil">
+            <path class="sk sk-thin" d="M170 14 Q 235 6 320 12 Q 332 12 332 26 L 332 44 Q 332 56 318 56 L 250 56 L 240 70 L 246 56 L 184 56 Q 170 56 170 44 L 170 26 Q 170 14 178 14 Z"
+              fill="#fff8e0"/>
+          </g>
+          <text x="251" y="38" class="hl" font-size="22" text-anchor="middle">Bluetooth Proxy ✦</text>
+
+          <!-- ESP32 board (sketchy) -->
+          <g class="pencil">
+            <!-- pcb body -->
+            <path class="sk sk-thick" d="M120 90 Q 160 86 220 88 T 340 92 Q 358 93 358 110 L 358 150 Q 358 168 340 168 L 138 168 Q 120 168 120 152 L 120 108 Q 120 91 124 90 Z"
+              fill="#e8dfcd"/>
+            <!-- hatch shading on board -->
+            <rect x="124" y="94" width="232" height="72" fill="url(#hatch-light)" opacity="0.5"/>
+            <!-- shield (BT chip) -->
+            <path class="sk" d="M210 102 Q 260 100 296 104 Q 304 105 304 114 L 304 142 Q 304 152 294 152 L 218 152 Q 208 152 208 144 L 208 110 Q 208 102 210 102 Z" fill="#cfd8e2"/>
+            <text x="256" y="132" class="hl2" font-size="16" text-anchor="middle">BT</text>
+            <!-- antenna squiggle -->
+            <path class="sk sk-thin" d="M260 102 Q 256 92 264 84 Q 272 78 268 70" fill="none"/>
+            <path class="sk sk-thin" d="M252 102 Q 244 95 250 86 Q 256 80 252 74" fill="none" opacity="0.7"/>
+            <path class="sk sk-thin" d="M268 102 Q 276 94 272 86 Q 268 80 274 74" fill="none" opacity="0.7"/>
+
+            <!-- USB port left -->
+            <path class="sk" d="M86 116 L 120 116 L 120 138 L 86 138 Z" fill="#f3ece0"/>
+            <path class="sk sk-thin" d="M92 122 L 116 122 L 116 132 L 92 132 Z" fill="none"/>
+            <!-- pin headers -->
+            <line class="sk sk-thin" x1="142" y1="98" x2="142" y2="160"/>
+            <line class="sk sk-thin" x1="152" y1="98" x2="152" y2="160"/>
+            <line class="sk sk-thin" x1="328" y1="98" x2="328" y2="160"/>
+            <line class="sk sk-thin" x1="338" y1="98" x2="338" y2="160"/>
+            <!-- LEDs -->
+            <circle class="sk" cx="170" cy="120" r="5" fill="#e0c4c0"/>
+            <circle class="sk" cx="190" cy="120" r="5" fill="#c8d2b8"/>
+          </g>
+
+          <!-- Sensor callout -->
+          <g class="pencil">
+            <path class="sk sk-thin" d="M156 178 Q 230 174 320 178 Q 334 178 334 188 L 334 200 Q 334 210 320 210 L 240 210 L 232 220 L 236 210 L 168 210 Q 156 210 156 200 L 156 188 Q 156 178 160 178 Z"
+              fill="#dfe7d2"/>
+          </g>
+          <text x="245" y="200" class="hl" font-size="22" text-anchor="middle">+ air sensor inside</text>
+
+          <!-- pencil arrow up to BLE proxy bubble -->
+          <path class="pencil sk sk-thin" d="M256 86 Q 254 76 256 60" stroke="#4d453f" marker-end="url(#ah-soft)"/>
+          <!-- pencil arrow down to sensor -->
+          <path class="pencil sk sk-thin" d="M200 168 Q 200 174 200 176" stroke="#4d453f" marker-end="url(#ah-soft)"/>
+
+          <!-- side scribbled note -->
+          <text x="44" y="60" class="hl hl-soft" font-size="20" transform="rotate(-8 44 60)">tiny computer!</text>
+          <path class="pencil sk sk-thin" d="M48 70 Q 70 86 102 102" stroke="#4d453f" opacity="0.6"/>
+        </svg>
+
+        <div class="caption">One small box. <em>Two jobs.</em> A <strong>Bluetooth Proxy</strong> for your gadgets <strong>and</strong> a sensor that measures the air in your room.</div>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- PANEL 2 — Power Supply -->
+    <!-- ========================================================== -->
+    <section class="panel">
+      <span class="tape"></span>
+      <svg class="frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path class="pencil" d="M1.5 2 Q 50 0.6 98.5 2.2 Q 99.3 50 98.4 98 Q 50 99.4 1.6 97.8 Q 0.7 50 1.5 2 Z"
+          fill="none" stroke="currentColor" stroke-width="0.4" vector-effect="non-scaling-stroke"/>
+      </svg>
+
+      <div class="head">
+        <div class="num">
+          <svg viewBox="0 0 54 54"><circle cx="27" cy="27" r="23" fill="none" stroke="#2a2422" stroke-width="1.7" class="pencil"/></svg>
+          <span>2</span>
+        </div>
+        <div class="title">Just <span class="underline">plug it in</span></div>
+      </div>
+
+      <div class="stage">
+        <svg class="scene" viewBox="0 0 480 220" aria-hidden="true">
+          <!-- ESP at top -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M170 16 Q 220 12 280 14 T 358 18 Q 372 20 372 32 L 372 56 Q 372 72 358 72 L 188 72 Q 170 72 170 56 L 170 30 Q 170 16 174 16 Z" fill="#e8dfcd"/>
+            <rect x="174" y="20" width="194" height="50" fill="url(#hatch-light)" opacity="0.45"/>
+            <path class="sk" d="M250 28 Q 290 26 308 30 Q 318 32 318 40 L 318 54 Q 318 62 310 62 L 254 62 Q 246 62 246 56 L 246 32 Q 246 28 250 28 Z" fill="#cfd8e2"/>
+            <text x="282" y="52" class="hl2" font-size="14" text-anchor="middle">BT</text>
+            <!-- USB-C port on ESP -->
+            <rect x="148" y="36" width="22" height="16" rx="4" class="sk" fill="#f3ece0"/>
+            <rect x="372" y="36" width="22" height="16" rx="4" class="sk" fill="#f3ece0"/>
+          </g>
+
+          <!-- arrows down to two cables -->
+          <path class="pencil sk sk-thin" d="M158 56 Q 130 86 110 110" stroke="#4d453f" marker-end="url(#ah-soft)" fill="none"/>
+          <path class="pencil sk sk-thin" d="M384 56 Q 414 86 432 110" stroke="#4d453f" marker-end="url(#ah-soft)" fill="none"/>
+
+          <!-- USB-A connector (left) -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M30 116 L 168 116 L 168 178 L 30 178 Z" fill="#f3ece0"/>
+            <rect x="38" y="124" width="124" height="18" fill="url(#hatch-med)" opacity="0.5"/>
+            <path class="sk" d="M44 130 L 158 130 L 158 142 L 44 142 Z" fill="#e8dfcd"/>
+            <!-- cable squiggle -->
+            <path class="sk sk-thin" d="M168 148 Q 188 144 200 158" fill="none"/>
+          </g>
+          <text x="98" y="170" class="hl" font-size="24" text-anchor="middle">USB-A</text>
+
+          <!-- "or" -->
+          <text x="240" y="158" class="hl hl-soft" font-size="36" text-anchor="middle" transform="rotate(-4 240 158)">or</text>
+
+          <!-- USB-C connector (right) -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M312 116 L 450 116 L 450 178 L 312 178 Z" fill="#f3ece0"/>
+            <rect x="320" y="124" width="124" height="18" fill="url(#hatch-med)" opacity="0.5"/>
+            <path class="sk" d="M328 130 L 442 130 L 442 142 L 328 142 Z" rx="9" fill="#e8dfcd"/>
+            <ellipse class="sk" cx="385" cy="136" rx="56" ry="6" fill="#e8dfcd"/>
+            <path class="sk sk-thin" d="M450 148 Q 470 144 482 158" fill="none"/>
+          </g>
+          <text x="380" y="170" class="hl" font-size="24" text-anchor="middle">USB-C</text>
+
+          <!-- bottom note -->
+          <text x="240" y="210" class="hl hl-soft" font-size="19" text-anchor="middle">any phone charger or USB port works just fine</text>
+        </svg>
+
+        <div class="caption">No special power supply needed — <em>your old phone charger is perfect.</em></div>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- PANEL 3 — Initial setup (Hotspot) -->
+    <!-- ========================================================== -->
+    <section class="panel">
+      <span class="tape"></span>
+      <svg class="frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path class="pencil" d="M1.5 2 Q 50 1 98.5 2 Q 99.4 50 98.6 98 Q 50 99.4 1.6 97.8 Q 0.7 50 1.5 2 Z"
+          fill="none" stroke="currentColor" stroke-width="0.4" vector-effect="non-scaling-stroke"/>
+      </svg>
+
+      <div class="head">
+        <div class="num"><svg viewBox="0 0 54 54"><circle cx="27" cy="27" r="23" fill="none" stroke="#2a2422" stroke-width="1.7" class="pencil"/></svg><span>3</span></div>
+        <div class="title">First-time <span class="underline">setup</span></div>
+      </div>
+
+      <div class="stage">
+        <svg class="scene" viewBox="0 0 480 230" aria-hidden="true">
+          <!-- Step labels (1) (2) (3) -->
+          <g class="pencil">
+            <circle class="sk" cx="60" cy="14" r="11" fill="#fff8e0"/>
+            <circle class="sk" cx="240" cy="14" r="11" fill="#fff8e0"/>
+            <circle class="sk" cx="420" cy="14" r="11" fill="#fff8e0"/>
+          </g>
+          <text x="60"  y="20" class="hl" font-size="20" text-anchor="middle">1</text>
+          <text x="240" y="20" class="hl" font-size="20" text-anchor="middle">2</text>
+          <text x="420" y="20" class="hl" font-size="20" text-anchor="middle">3</text>
+
+          <!-- Step 1: device with broadcasting waves -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M16 50 Q 60 46 110 50 Q 116 50 116 58 L 116 78 Q 116 88 110 88 L 22 88 Q 14 88 14 78 L 14 60 Q 14 50 16 50 Z" fill="#e8dfcd"/>
+            <rect x="18" y="54" width="96" height="30" fill="url(#hatch-light)" opacity="0.45"/>
+            <text x="65" y="74" class="hl2" font-size="13" text-anchor="middle">ESP</text>
+            <!-- waves -->
+            <path class="sk sk-thin" d="M65 46 Q 56 36 46 38" fill="none" opacity="0.8"/>
+            <path class="sk sk-thin" d="M65 46 Q 65 32 65 30" fill="none" opacity="0.8"/>
+            <path class="sk sk-thin" d="M65 46 Q 74 36 84 38" fill="none" opacity="0.8"/>
+            <path class="sk sk-thin" d="M65 46 Q 50 24 32 24" fill="none" opacity="0.5"/>
+            <path class="sk sk-thin" d="M65 46 Q 80 24 96 24" fill="none" opacity="0.5"/>
+
+            <!-- speech bubble: hotspot active -->
+            <path class="sk" d="M14 100 Q 64 96 116 100 Q 120 100 120 106 L 120 122 Q 120 128 114 128 L 80 128 L 70 138 L 76 128 L 18 128 Q 14 128 14 122 Z" fill="#fff8e0"/>
+          </g>
+          <text x="65" y="118" class="hl" font-size="16" text-anchor="middle">helper-wifi</text>
+
+          <!-- arrow 1->2 -->
+          <path class="pencil sk sk-thin" d="M126 90 Q 156 90 168 90" stroke="#4d453f" marker-end="url(#ah-soft)" fill="none"/>
+
+          <!-- Step 2: phone showing networks -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M196 36 L 296 36 Q 304 36 304 44 L 304 154 Q 304 162 296 162 L 196 162 Q 188 162 188 154 L 188 44 Q 188 36 196 36 Z" fill="#f3ece0"/>
+            <path class="sk sk-thin" d="M196 44 L 296 44 L 296 154 L 196 154 Z" fill="#fff8e0"/>
+            <text x="246" y="60" class="hl2 hl-soft" font-size="11" text-anchor="middle">choose a WiFi</text>
+            <line class="sk sk-thin" x1="200" y1="64" x2="292" y2="64" opacity="0.5"/>
+            <text x="246" y="80" class="hl2 hl-soft" font-size="11" text-anchor="middle">My Home WiFi</text>
+            <!-- selected -->
+            <path class="sk sk-thin" d="M198 86 L 294 86 L 294 104 L 198 104 Z" fill="#dfe7d2"/>
+            <text x="246" y="99" class="hl2" font-size="11" text-anchor="middle">helper-wifi ✓</text>
+            <text x="246" y="120" class="hl2 hl-soft" font-size="11" text-anchor="middle">Neighbour upstairs</text>
+            <text x="246" y="138" class="hl2 hl-soft" font-size="11" text-anchor="middle">Guest WiFi</text>
+            <!-- speaker / home button -->
+            <line class="sk sk-thin" x1="232" y1="42" x2="260" y2="42"/>
+          </g>
+
+          <!-- arrow 2->3 -->
+          <path class="pencil sk sk-thin" d="M312 90 Q 332 90 344 90" stroke="#4d453f" marker-end="url(#ah-soft)" fill="none"/>
+
+          <!-- Step 3: captive portal browser -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M348 40 L 472 40 Q 478 40 478 46 L 478 152 Q 478 158 472 158 L 348 158 Q 342 158 342 152 L 342 46 Q 342 40 348 40 Z" fill="#f3ece0"/>
+            <path class="sk sk-thin" d="M346 54 L 478 54" />
+            <text x="410" y="50" class="hl2 hl-soft" font-size="9" text-anchor="middle">setup page</text>
+            <text x="410" y="72" class="hl" font-size="16" text-anchor="middle">Welcome! Let's set up</text>
+            <text x="350" y="88" class="hl2 hl-soft" font-size="10">Your home WiFi</text>
+            <path class="sk sk-thin" d="M350 92 L 472 92 L 472 106 L 350 106 Z" fill="#fff8e0"/>
+            <text x="354" y="103" class="hl2" font-size="10">My Home WiFi</text>
+            <text x="350" y="118" class="hl2 hl-soft" font-size="10">WiFi password</text>
+            <path class="sk sk-thin" d="M350 122 L 472 122 L 472 136 L 350 136 Z" fill="#fff8e0"/>
+            <text x="354" y="133" class="hl2" font-size="10">●●●●●●●●</text>
+            <path class="sk" d="M384 142 L 438 142 L 438 152 L 384 152 Z" fill="#cfd8e2"/>
+            <text x="411" y="151" class="hl2" font-size="10" text-anchor="middle">Connect</text>
+          </g>
+
+          <!-- caption arrow + note -->
+          <text x="240" y="218" class="hl hl-soft" font-size="18" text-anchor="middle">you only do this once — it remembers!</text>
+        </svg>
+
+        <div class="caption">It makes its own little WiFi at first. Join it from your phone, type in your real WiFi password — and that's it.</div>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- PANEL 4 — What does a BT proxy do? -->
+    <!-- ========================================================== -->
+    <section class="panel">
+      <span class="tape"></span>
+      <svg class="frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path class="pencil" d="M1.5 2 Q 50 1 98.5 2 Q 99.4 50 98.6 98 Q 50 99.4 1.6 97.8 Q 0.7 50 1.5 2 Z"
+          fill="none" stroke="currentColor" stroke-width="0.4" vector-effect="non-scaling-stroke"/>
+      </svg>
+
+      <div class="head">
+        <div class="num"><svg viewBox="0 0 54 54"><circle cx="27" cy="27" r="23" fill="none" stroke="#2a2422" stroke-width="1.7" class="pencil"/></svg><span>4</span></div>
+        <div class="title">What does it <span class="underline">actually do?</span></div>
+      </div>
+
+      <div class="stage">
+        <svg class="scene" viewBox="0 0 480 240" aria-hidden="true">
+          <!-- House outline -->
+          <g class="pencil">
+            <!-- roof -->
+            <path class="sk sk-thick" d="M30 60 L 240 14 L 332 60 Z" fill="#e8c8a8" fill-opacity="0.4"/>
+            <path d="M30 60 L 240 14 L 332 60 Z" fill="url(#hatch-light)" opacity="0.5"/>
+            <!-- ground floor -->
+            <path class="sk sk-thick" d="M40 60 L 322 60 L 322 138 L 40 138 Z" fill="#fff8e0" fill-opacity="0.5"/>
+            <!-- basement -->
+            <path class="sk sk-thick" d="M40 138 L 322 138 L 322 200 L 40 200 Z" fill="#e8dfcd"/>
+            <rect x="42" y="140" width="278" height="58" fill="url(#cross-hatch)" opacity="0.5"/>
+            <!-- floor divider -->
+            <line class="sk" x1="40" y1="138" x2="322" y2="138"/>
+            <!-- chimney -->
+            <path class="sk" d="M260 38 L 260 24 L 280 24 L 280 50" fill="#e8dfcd"/>
+            <!-- floor labels -->
+          </g>
+          <text x="56" y="80" class="hl hl-soft" font-size="16">ground floor</text>
+          <text x="56" y="158" class="hl hl-soft" font-size="16">basement</text>
+
+          <!-- Garden ground -->
+          <g class="pencil">
+            <path class="sk sk-thin" d="M322 200 Q 380 196 470 202" fill="none"/>
+            <path class="sk sk-thin" d="M322 206 Q 380 204 470 208" fill="none" opacity="0.55"/>
+            <!-- grass tufts -->
+            <path class="sk sk-thin" d="M340 200 L 342 192 M 348 200 L 346 190 M 354 200 L 356 192" fill="none"/>
+            <path class="sk sk-thin" d="M390 198 L 392 188 M 398 198 L 396 186 M 404 198 L 406 190" fill="none"/>
+            <path class="sk sk-thin" d="M444 202 L 446 192 M 452 202 L 450 190 M 458 202 L 460 192" fill="none"/>
+          </g>
+          <text x="408" y="220" class="hl hl-soft" font-size="16">garden</text>
+
+          <!-- ESP proxy (ground floor) -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M120 88 Q 156 86 196 90 Q 206 91 206 100 L 206 116 Q 206 124 198 124 L 132 124 Q 122 124 122 118 L 122 92 Q 120 88 120 88 Z" fill="#cfd8e2"/>
+            <text x="164" y="111" class="hl2" font-size="14" text-anchor="middle">Bluetooth Proxy</text>
+          </g>
+
+          <!-- HA server in basement -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M70 156 L 132 156 L 132 188 L 70 188 Z" fill="#cfd8e2"/>
+            <line class="sk sk-thin" x1="80" y1="166" x2="124" y2="166"/>
+            <line class="sk sk-thin" x1="80" y1="172" x2="124" y2="172"/>
+            <line class="sk sk-thin" x1="80" y1="178" x2="100" y2="178"/>
+            <text x="101" y="200" class="hl" font-size="16" text-anchor="middle">smart-home hub</text>
+          </g>
+
+          <!-- WiFi link from HA → proxy -->
+          <g class="pencil">
+            <path class="sk sk-thin" d="M104 156 Q 110 134 130 120" stroke-dasharray="4 3" fill="none" marker-end="url(#ah-soft)"/>
+            <path class="sk sk-thin" d="M118 144 Q 114 142 116 138" fill="none" opacity="0.7"/>
+            <path class="sk sk-thin" d="M124 146 Q 120 144 122 140" fill="none" opacity="0.5"/>
+          </g>
+          <text x="78" y="138" class="hl hl-soft" font-size="14" transform="rotate(-58 78 138)">WiFi</text>
+
+          <!-- Gardena valve in garden -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M380 130 L 432 130 L 432 196 L 380 196 Z" fill="#c8d2b8"/>
+            <rect x="380" y="130" width="52" height="66" fill="url(#hatch-med)" opacity="0.4"/>
+            <path class="sk" d="M398 110 L 414 110 L 414 130 L 398 130 Z" fill="#e8dfcd"/>
+            <circle class="sk sk-thin" cx="392" cy="106" r="4" fill="#cfd8e2"/>
+            <circle class="sk sk-thin" cx="420" cy="100" r="3" fill="#cfd8e2"/>
+            <text x="406" y="166" class="hl2" font-size="14" text-anchor="middle">H₂O</text>
+            <text x="406" y="216" class="hl" font-size="14" text-anchor="middle">Gardena</text>
+          </g>
+
+          <!-- BT link from proxy → garden -->
+          <g class="pencil">
+            <path class="sk" d="M210 108 Q 290 100 376 130" stroke-dasharray="5 4" fill="none" marker-end="url(#ah-soft)"/>
+          </g>
+          <text x="290" y="92" class="hl hl-soft" font-size="15">Bluetooth</text>
+        </svg>
+
+        <div class="caption">The <strong>Bluetooth Proxy</strong> <em>hears</em> your gadgets nearby and <em>passes the message along</em> over WiFi — through walls, floors and out to the garden.</div>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- PANEL 5 — Gardena example -->
+    <!-- ========================================================== -->
+    <section class="panel">
+      <span class="tape"></span>
+      <svg class="frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path class="pencil" d="M1.5 2 Q 50 1 98.5 2 Q 99.4 50 98.6 98 Q 50 99.4 1.6 97.8 Q 0.7 50 1.5 2 Z"
+          fill="none" stroke="currentColor" stroke-width="0.4" vector-effect="non-scaling-stroke"/>
+      </svg>
+
+      <div class="head">
+        <div class="num"><svg viewBox="0 0 54 54"><circle cx="27" cy="27" r="23" fill="none" stroke="#2a2422" stroke-width="1.7" class="pencil"/></svg><span>5</span></div>
+        <div class="title">Example: <span class="underline">watering</span> on autopilot</div>
+      </div>
+
+      <div class="stage">
+        <svg class="scene" viewBox="0 0 480 230" aria-hidden="true">
+          <!-- Gardena valve -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M14 70 L 70 70 L 70 152 L 14 152 Z" fill="#c8d2b8"/>
+            <rect x="14" y="70" width="56" height="82" fill="url(#hatch-med)" opacity="0.35"/>
+            <path class="sk" d="M30 50 L 54 50 L 54 70 L 30 70 Z" fill="#e8dfcd"/>
+            <text x="42" y="115" class="hl2" font-size="16" text-anchor="middle">H₂O</text>
+            <text x="42" y="170" class="hl" font-size="16" text-anchor="middle">Gardena</text>
+            <text x="42" y="186" class="hl hl-soft" font-size="13" text-anchor="middle">Smart Water</text>
+            <!-- water drips -->
+            <ellipse class="sk sk-thin" cx="14" cy="156" rx="3" ry="4" fill="#cfd8e2"/>
+            <ellipse class="sk sk-thin" cx="42" cy="160" rx="3" ry="4" fill="#cfd8e2"/>
+            <ellipse class="sk sk-thin" cx="68" cy="156" rx="3" ry="4" fill="#cfd8e2"/>
+          </g>
+
+          <!-- BT waves -->
+          <path class="pencil sk sk-thin" d="M76 88 Q 86 78 76 68" fill="none"/>
+          <path class="pencil sk sk-thin" d="M84 92 Q 100 78 84 60" fill="none" opacity="0.6"/>
+
+          <!-- arrow -->
+          <path class="pencil sk sk-thin" d="M104 100 L 130 100" stroke="#4d453f" marker-end="url(#ah-soft)" fill="none"/>
+          <text x="118" y="92" class="hl hl-soft" font-size="14" text-anchor="middle">BT</text>
+
+          <!-- ESP proxy mini -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M134 86 L 200 86 Q 208 86 208 92 L 208 114 Q 208 122 200 122 L 134 122 Q 128 122 128 116 L 128 92 Q 128 86 134 86 Z" fill="#cfd8e2"/>
+            <text x="168" y="108" class="hl2" font-size="13" text-anchor="middle">Bluetooth Proxy</text>
+          </g>
+
+          <!-- arrow to HA -->
+          <path class="pencil sk sk-thin" d="M214 100 L 244 100" stroke="#4d453f" marker-end="url(#ah-soft)" fill="none"/>
+          <text x="232" y="92" class="hl hl-soft" font-size="14" text-anchor="middle">WiFi</text>
+
+          <!-- HA automation card -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M252 24 Q 360 20 462 26 Q 470 26 470 36 L 470 198 Q 470 208 462 208 L 256 208 Q 250 208 250 200 L 250 32 Q 252 24 252 24 Z" fill="#fff8e0"/>
+            <!-- header bar -->
+            <path class="sk" d="M252 26 L 470 26 L 470 56 L 252 56 Z" fill="#cfd8e2"/>
+          </g>
+          <text x="360" y="48" class="hl" font-size="20" text-anchor="middle">a little house rule</text>
+
+          <!-- trigger -->
+          <text x="266" y="78" class="hl2 hl-soft" font-size="13">when</text>
+          <g class="pencil">
+            <path class="sk sk-thin" d="M260 86 L 460 86 L 460 116 L 260 116 Z" fill="#e8c8a8" fill-opacity="0.4"/>
+          </g>
+          <text x="360" y="106" class="hl" font-size="20" text-anchor="middle">temp &gt; 28°C ☀</text>
+
+          <!-- action -->
+          <text x="266" y="132" class="hl2 hl-soft" font-size="13">then</text>
+          <g class="pencil">
+            <path class="sk sk-thin" d="M260 140 L 460 140 L 460 170 L 260 170 Z" fill="#c8d2b8" fill-opacity="0.5"/>
+          </g>
+          <text x="360" y="160" class="hl" font-size="20" text-anchor="middle">water zone 1</text>
+
+          <!-- duration pill -->
+          <g class="pencil">
+            <path class="sk" d="M285 178 Q 360 174 435 178 Q 444 178 444 188 Q 444 198 432 198 L 290 198 Q 280 198 280 188 Q 280 178 285 178 Z" fill="#cfd8e2"/>
+          </g>
+          <text x="362" y="194" class="hl" font-size="17" text-anchor="middle">⏱ for 20 minutes</text>
+
+          <!-- margin scribble -->
+          <text x="80" y="40" class="hl hl-soft" font-size="16" transform="rotate(-6 80 40)">even from holiday!</text>
+          <path class="pencil sk sk-thin" d="M120 50 Q 130 60 138 70" stroke="#4d453f" opacity="0.5" fill="none"/>
+        </svg>
+
+        <div class="caption">Hot day? The garden gets watered all by itself. <em>Even when you're not home.</em></div>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- PANEL 6 — Environmental data -->
+    <!-- ========================================================== -->
+    <section class="panel">
+      <span class="tape"></span>
+      <svg class="frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path class="pencil" d="M1.5 2 Q 50 1 98.5 2 Q 99.4 50 98.6 98 Q 50 99.4 1.6 97.8 Q 0.7 50 1.5 2 Z"
+          fill="none" stroke="currentColor" stroke-width="0.4" vector-effect="non-scaling-stroke"/>
+      </svg>
+
+      <div class="head">
+        <div class="num"><svg viewBox="0 0 54 54"><circle cx="27" cy="27" r="23" fill="none" stroke="#2a2422" stroke-width="1.7" class="pencil"/></svg><span>6</span></div>
+        <div class="title">What the <span class="underline">air sensor</span> sees</div>
+      </div>
+
+      <div class="stage">
+        <svg class="scene" viewBox="0 0 480 230" aria-hidden="true">
+          <!-- 4 reading cards arranged in 2x2 -->
+          <!-- temp -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M14 14 Q 100 10 220 14 Q 230 14 230 24 L 230 100 Q 230 112 220 112 L 24 112 Q 14 112 14 102 Z" fill="#fff8e0"/>
+          </g>
+          <text x="30" y="40" class="hl hl-soft" font-size="16">temperature</text>
+          <text x="30" y="92" class="hl" font-size="46">22.5°</text>
+          <text x="170" y="92" class="hl hl-soft" font-size="22">C</text>
+          <!-- thermometer doodle -->
+          <g class="pencil" transform="translate(186 30)">
+            <path class="sk sk-thin" d="M6 0 L 14 0 L 14 36 Q 22 38 22 50 Q 22 62 10 62 Q -2 62 -2 50 Q -2 38 6 36 Z" fill="#e0c4c0"/>
+            <circle class="sk" cx="10" cy="50" r="6" fill="#e0c4c0"/>
+            <line class="sk sk-thin" x1="14" y1="10" x2="20" y2="10"/>
+            <line class="sk sk-thin" x1="14" y1="20" x2="18" y2="20"/>
+            <line class="sk sk-thin" x1="14" y1="30" x2="20" y2="30"/>
+          </g>
+
+          <!-- humidity -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M250 14 Q 340 10 460 14 Q 470 14 470 24 L 470 100 Q 470 112 460 112 L 260 112 Q 250 112 250 102 Z" fill="#fff8e0"/>
+          </g>
+          <text x="266" y="40" class="hl hl-soft" font-size="16">humidity</text>
+          <text x="266" y="92" class="hl" font-size="46">48</text>
+          <text x="356" y="92" class="hl hl-soft" font-size="22">%</text>
+          <!-- droplet doodle -->
+          <g class="pencil" transform="translate(412 32)">
+            <path class="sk" d="M20 4 Q 36 30 20 56 Q 4 30 20 4 Z" fill="#cfd8e2"/>
+            <path class="sk sk-thin" d="M14 36 Q 18 44 26 40" fill="none" opacity="0.6"/>
+          </g>
+
+          <!-- pressure -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M14 124 Q 100 120 220 124 Q 230 124 230 134 L 230 210 Q 230 222 220 222 L 24 222 Q 14 222 14 212 Z" fill="#fff8e0"/>
+          </g>
+          <text x="30" y="150" class="hl hl-soft" font-size="16">air pressure</text>
+          <text x="30" y="202" class="hl" font-size="44">1013</text>
+          <text x="166" y="202" class="hl hl-soft" font-size="22">hPa</text>
+          <!-- gauge doodle -->
+          <g class="pencil" transform="translate(186 144)">
+            <path class="sk" d="M6 30 A 24 24 0 0 1 50 30" fill="none"/>
+            <line class="sk" x1="28" y1="32" x2="40" y2="14"/>
+            <circle class="sk" cx="28" cy="32" r="3" fill="#2a2422"/>
+          </g>
+
+          <!-- IAQ -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M250 124 Q 340 120 460 124 Q 470 124 470 134 L 470 210 Q 470 222 460 222 L 260 222 Q 250 222 250 212 Z" fill="#fff8e0"/>
+          </g>
+          <text x="266" y="150" class="hl hl-soft" font-size="16">air quality</text>
+          <text x="362" y="200" class="hl" font-size="46" text-anchor="middle">good ✦</text>
+          <!-- five-bar level meter -->
+          <g class="pencil" transform="translate(266 158)">
+            <rect class="sk sk-thin" x="0" y="22" width="14" height="10" fill="#c8d2b8"/>
+            <rect class="sk sk-thin" x="18" y="16" width="14" height="16" fill="#c8d2b8"/>
+            <rect class="sk sk-thin" x="36" y="10" width="14" height="22" fill="#c8d2b8"/>
+            <rect class="sk sk-thin" x="54" y="4" width="14" height="28" fill="#fff8e0"/>
+            <rect class="sk sk-thin" x="72" y="-2" width="14" height="34" fill="#fff8e0"/>
+          </g>
+        </svg>
+
+        <div class="caption">Always-on readings of your room — how warm, how damp, the weather pressure, and how fresh the air feels.</div>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- PANEL 7 — Flashing & Updating -->
+    <!-- ========================================================== -->
+    <section class="panel">
+      <span class="tape"></span>
+      <svg class="frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path class="pencil" d="M1.5 2 Q 50 1 98.5 2 Q 99.4 50 98.6 98 Q 50 99.4 1.6 97.8 Q 0.7 50 1.5 2 Z"
+          fill="none" stroke="currentColor" stroke-width="0.4" vector-effect="non-scaling-stroke"/>
+      </svg>
+
+      <div class="head">
+        <div class="num"><svg viewBox="0 0 54 54"><circle cx="27" cy="27" r="23" fill="none" stroke="#2a2422" stroke-width="1.7" class="pencil"/></svg><span>7</span></div>
+        <div class="title">Keeping it <span class="underline">up to date</span></div>
+      </div>
+
+      <div class="stage">
+        <svg class="scene" viewBox="0 0 480 220" aria-hidden="true">
+          <!-- ESP -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M16 80 Q 60 76 130 80 Q 140 80 140 90 L 140 130 Q 140 140 130 140 L 24 140 Q 14 140 14 130 L 14 92 Q 14 80 16 80 Z" fill="#e8dfcd"/>
+            <rect x="18" y="84" width="118" height="52" fill="url(#hatch-light)" opacity="0.45"/>
+            <text x="76" y="116" class="hl2" font-size="16" text-anchor="middle">ESP</text>
+            <!-- USB port on right -->
+            <rect x="140" y="100" width="22" height="20" rx="4" class="sk" fill="#f3ece0"/>
+          </g>
+
+          <!-- USB cable to laptop -->
+          <path class="pencil sk sk-thick" d="M162 110 C 220 110 220 130 280 130" fill="none"/>
+          <text x="218" y="100" class="hl hl-soft" font-size="16" text-anchor="middle">first time: USB</text>
+
+          <!-- Laptop / terminal -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M278 50 L 466 50 Q 472 50 472 56 L 472 156 Q 472 162 466 162 L 278 162 Q 272 162 272 156 L 272 56 Q 272 50 278 50 Z" fill="#2a2422"/>
+            <path class="sk sk-thin" d="M280 56 L 470 56 L 470 158 L 280 158 Z" fill="#1a1a26"/>
+            <!-- traffic lights -->
+            <circle cx="290" cy="63" r="2" fill="#e0c4c0"/>
+            <circle cx="298" cy="63" r="2" fill="#f0d878"/>
+            <circle cx="306" cy="63" r="2" fill="#c8d2b8"/>
+
+            <!-- screen base -->
+            <path class="sk sk-thick" d="M260 162 L 484 162 L 478 178 L 266 178 Z" fill="#2a2422"/>
+          </g>
+
+          <text x="290" y="86" class="hl2" font-size="13" fill="#c8d2b8">→ checking for an update…</text>
+          <text x="290" y="104" class="hl2" font-size="13" fill="#a39c92">  preparing the new version…</text>
+          <text x="290" y="122" class="hl2" font-size="13" fill="#c8d2b8">  sending it over WiFi…</text>
+          <text x="290" y="142" class="hl2" font-size="13" fill="#f0d878">  ✓ all done!</text>
+
+          <!-- alternative banner -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M14 178 Q 90 174 200 178 Q 210 179 210 188 L 210 204 Q 210 214 200 214 L 24 214 Q 14 214 14 204 Z" fill="#fff8e0"/>
+            <rect x="14" y="178" width="196" height="36" fill="url(#hatch-light)" opacity="0.3"/>
+          </g>
+          <text x="112" y="201" class="hl" font-size="20" text-anchor="middle">★ next times: just WiFi!</text>
+
+          <!-- arrow from banner up to laptop -->
+          <path class="pencil sk sk-thin" d="M210 190 Q 250 180 280 160" stroke="#4d453f" fill="none" marker-end="url(#ah-soft)" opacity="0.7"/>
+        </svg>
+
+        <div class="caption">First time you'll need a USB cable. After that, updates arrive wirelessly — no need to unplug a thing.</div>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- PANEL 8 — Home Assistant -->
+    <!-- ========================================================== -->
+    <section class="panel">
+      <span class="tape"></span>
+      <svg class="frame" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path class="pencil" d="M1.5 2 Q 50 1 98.5 2 Q 99.4 50 98.6 98 Q 50 99.4 1.6 97.8 Q 0.7 50 1.5 2 Z"
+          fill="none" stroke="currentColor" stroke-width="0.4" vector-effect="non-scaling-stroke"/>
+      </svg>
+
+      <div class="head">
+        <div class="num"><svg viewBox="0 0 54 54"><circle cx="27" cy="27" r="23" fill="none" stroke="#2a2422" stroke-width="1.7" class="pencil"/></svg><span>8</span></div>
+        <div class="title">In your Homeassistant app</div>
+      </div>
+
+      <div class="stage">
+        <svg class="scene" viewBox="0 0 480 220" aria-hidden="true">
+          <!-- dashboard frame -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M10 10 Q 240 6 470 12 Q 478 12 478 22 L 478 206 Q 478 214 470 214 L 14 214 Q 6 214 6 204 L 6 20 Q 10 10 10 10 Z" fill="#f3ece0"/>
+            <!-- title bar -->
+            <path class="sk" d="M10 12 L 470 12 L 470 40 L 10 40 Z" fill="#cfd8e2"/>
+          </g>
+          <!-- Home Assistant logo sketch — based on official mark -->
+          <g class="pencil" transform="translate(16 2)">
+            <!-- pentagonal house silhouette: square base + roof peak -->
+            <path class="sk sk-thick"
+              d="M5 44 Q 4 44 4 42 L 4 22 Q 4 20 5 19 L 22 4 Q 24 2 26 4 L 43 19 Q 44 20 44 22 L 44 42 Q 44 44 43 44 Z"
+              fill="#cfd8e2"/>
+            <!-- soft fill hatch for the blue body -->
+            <path d="M5 44 L 4 22 L 22 4 L 26 4 L 44 22 L 44 44 Z" fill="url(#hatch-light)" opacity="0.45"/>
+            <!-- circuit trunk: vertical from bottom-center upward -->
+            <path class="sk sk-thick" d="M24 43 L 24 14" fill="none" stroke="#fff8e0" stroke-width="3"/>
+            <!-- branch to lower-left circle -->
+            <path class="sk sk-thick" d="M24 30 L 13 32" fill="none" stroke="#fff8e0" stroke-width="2.6"/>
+            <!-- branch to middle-right circle -->
+            <path class="sk sk-thick" d="M24 22 L 36 24" fill="none" stroke="#fff8e0" stroke-width="2.6"/>
+            <!-- the three node circles, drawn over the trunk -->
+            <circle class="sk" cx="24" cy="12" r="3.2" fill="#fff8e0"/>
+            <circle class="sk" cx="11.5" cy="32" r="2.6" fill="#fff8e0"/>
+            <circle class="sk" cx="37"   cy="24" r="2.6" fill="#fff8e0"/>
+            <!-- redraw circuit lines on top in pencil ink for definition -->
+            <path class="sk sk-thin" d="M24 43 L 24 14" fill="none"/>
+            <path class="sk sk-thin" d="M24 30 L 13 32" fill="none"/>
+            <path class="sk sk-thin" d="M24 22 L 36 24" fill="none"/>
+            <circle class="sk sk-thin" cx="24" cy="12" r="3.2" fill="none"/>
+            <circle class="sk sk-thin" cx="11.5" cy="32" r="2.6" fill="none"/>
+            <circle class="sk sk-thin" cx="37"   cy="24" r="2.6" fill="none"/>
+          </g>
+          <text x="270" y="34" class="hl" font-size="22" text-anchor="middle">Your home dashboard</text>
+
+          <!-- top row 3 cards -->
+          <!-- BLE proxy -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M22 56 L 158 56 L 158 124 L 22 124 Z" fill="#fff8e0"/>
+          </g>
+          <text x="32" y="76" class="hl hl-soft" font-size="14">Bluetooth Proxy</text>
+          <g class="pencil">
+            <path class="sk" d="M40 86 L 140 86 L 140 114 L 40 114 Z" fill="#c8d2b8"/>
+          </g>
+          <text x="90" y="106" class="hl" font-size="22" text-anchor="middle">● active</text>
+
+          <!-- temperature -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M172 56 L 308 56 L 308 124 L 172 124 Z" fill="#fff8e0"/>
+          </g>
+          <text x="182" y="76" class="hl hl-soft" font-size="14">temperature</text>
+          <text x="240" y="112" class="hl" font-size="32" text-anchor="middle">22.5 °C</text>
+
+          <!-- air quality -->
+          <g class="pencil">
+            <path class="sk sk-thick" d="M322 56 L 458 56 L 458 124 L 322 124 Z" fill="#fff8e0"/>
+          </g>
+          <text x="332" y="76" class="hl hl-soft" font-size="14">air quality</text>
+          <text x="390" y="112" class="hl" font-size="30" text-anchor="middle">fresh ✿</text>
+
+          <!-- bottom row mini cards -->
+          <g class="pencil">
+            <path class="sk" d="M22 138 L 158 138 L 158 192 L 22 192 Z" fill="#fff8e0"/>
+            <path class="sk" d="M172 138 L 308 138 L 308 192 L 172 192 Z" fill="#fff8e0"/>
+            <path class="sk" d="M322 138 L 458 138 L 458 192 L 322 192 Z" fill="#fff8e0"/>
+          </g>
+          <text x="32" y="158" class="hl hl-soft" font-size="13">humidity</text>
+          <text x="90" y="184" class="hl" font-size="22" text-anchor="middle">48 %</text>
+          <text x="182" y="158" class="hl hl-soft" font-size="13">pressure</text>
+          <text x="240" y="184" class="hl" font-size="22" text-anchor="middle">1013 hPa</text>
+          <text x="332" y="158" class="hl hl-soft" font-size="13">how fresh</text>
+          <text x="390" y="184" class="hl" font-size="22" text-anchor="middle">very fresh</text>
+
+          <!-- margin pencil note -->
+          <text x="240" y="208" class="hl hl-soft" font-size="14" text-anchor="middle">it shows up by itself — no setting up needed</text>
+        </svg>
+
+        <div class="caption">Plug it in, connect, done. Homeassistant will find it on its own — each reading shows up as a friendly little tile.</div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ===== Footer ===== -->
+  <div class="footer">
+    Bluetooth Proxy <span class="dash">·</span> Air Sensor <span class="dash">·</span> happy home ✦
+  </div>
+
+</div>
+
+</body>
+</html>
