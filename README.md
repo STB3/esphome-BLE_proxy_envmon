@@ -3,6 +3,8 @@
 [![ESPHome](https://img.shields.io/badge/ESPHome-2025.8.0+-blue)](https://esphome.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-ESP32--C6-orange)](https://www.espressif.com/en/products/socs/esp32-c6)
+[![ESPHome](https://img.shields.io/badge/ESPHome-2025.8.0+-blue)](https://esphome.io) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Platform](https://img.shields.io/badge/Platform-ESP32--C6-orange)](https://www.espressif.com/en/products/socs/esp32-c6)
+[![Pre-order on Lectronz](https://img.shields.io/badge/Pre--order-Lectronz-brightgreen?logo=shopify&logoColor=white)](https://lectronz.com/campaigns/pre-order-esphome-air-quality-sensor-stick-bluetooth-proxy)
 
 🇩🇪 [Deutsch](#deutsch) | 🇬🇧 [English](#english)
 
@@ -12,6 +14,14 @@
 # 🇩🇪 Deutsch
 
 ESPHome-basiertes Firmware-Projekt für einen **Bluetooth Proxy** auf Basis des ESP32-C6 – wahlweise mit oder ohne **BME688 Umweltsensor**. Beide Varianten teilen eine gemeinsame Paketbasis und werden über separate Gerätedateien konfiguriert.
+
+## 🛒 Hardware kaufen
+
+> **Fertig aufgebauter USB-Stick** (ESP32-C6 + BME688, im Gehäuse) als Vorbestellung verfügbar:
+
+[![Vorbestellung auf Lectronz](https://img.shields.io/badge/Vorbestellung-Lectronz-brightgreen?style=for-the-badge&logo=shopify&logoColor=white)](https://lectronz.com/campaigns/pre-order-esphome-air-quality-sensor-stick-bluetooth-proxy)
+
+Wer die Firmware lieber selbst flashen möchte, kann dieses Repository direkt auf eigener Hardware nutzen – siehe [Installation](#installation).
 
 ## Übersicht
 
@@ -141,6 +151,14 @@ MIT License – siehe [LICENSE](LICENSE)
 # 🇬🇧 English
 
 ESPHome-based firmware project for a **Bluetooth Proxy** built around the ESP32-C6 – optionally with or without a **BME688 environmental sensor**. Both variants share a common package base and are configured via separate device files.
+
+## 🛒 Buy Hardware
+
+> **Ready-to-use USB stick** (ESP32-C6 + BME688, enclosure included) available as pre-order:
+
+[![Pre-order on Lectronz](https://img.shields.io/badge/Pre--order-Lectronz-brightgreen?style=for-the-badge&logo=shopify&logoColor=white)](https://lectronz.com/campaigns/pre-order-esphome-air-quality-sensor-stick-bluetooth-proxy)
+
+Prefer to flash the firmware yourself? Clone this repo and use it on your own hardware — see [Installation](#installation-1).
 
 ## Overview
 
